@@ -1,0 +1,33 @@
+version: "3"
+services:
+  mariadb:
+    image: elestio/mariadb:${SOFTWARE_VERSION_TAG}
+    container_name: mariadb
+    restart: always
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --gtid-strict-mode=1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SOFTWARE_PASSWORD}
+    ports:
+      - 24306:3306
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  pma:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    links:
+      - mariadb:mariadb
+    ports:
+      - "172.17.0.1:24581:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${SOFTWARE_PASSWORD}
+      UPLOAD_LIMIT: 500M
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: ${SOFTWARE_PASSWORD}
+    depends_on:
+      - mariadb
